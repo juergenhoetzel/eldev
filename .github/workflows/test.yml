@@ -27,12 +27,25 @@ jobs:
             emacs_version: '26.3'
           - os: macos-latest
             emacs_version: 'snapshot'
+          - os: windows-latest
+            emacs_version: '27.1'
 
     steps:
     - name: Set up Emacs
+      if: "!startsWith (matrix.os, 'windows')"
       uses: purcell/setup-emacs@master
       with:
         version: ${{matrix.emacs_version}}
+
+    - name: Set up Emacs on Windows
+      if: startsWith (matrix.os, 'windows')
+      run: |
+        Set-ExecutionPolicy RemoteSigned -scope CurrentUser
+        Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+        scoop update
+        scoop bucket add extras
+        scoop install emacs@${{ matrix.emacs_version }}
+        echo "$env:PATH" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
     - name: Set up additional packages (Ubuntu)
       if: startsWith (matrix.os, 'ubuntu')
@@ -49,10 +62,20 @@ jobs:
     - name: Check out the source code
       uses: actions/checkout@v2
 
+
+    - name: Add to PATH
+      run: echo "$(get-location)\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      if: "startsWith (matrix.os, 'windows')"
+    - name: Add to PATH
+      run: echo "$PWD/bin" >> $GITHUB_PATH
+      if: "!startsWith (matrix.os, 'windows')"
+
     - name: Test the project
       run: |
-        ELDEV_LOCAL=. ./bin/eldev -p -dtTC test --omit-backtraces --expect 200
-        ELDEV_LOCAL=. ./bin/eldev -p -dtTC test --test-type integration --omit-backtraces --expect 5
+        eldev -p -dtTC test --omit-backtraces --expect 200
+        eldev -p -dtTC test --test-type integration --omit-backtraces --expect 5
+      env:
+        ELDEV_LOCAL: "."
 
     - name: Ensure clean byte-compilation
       run: |
@@ -60,27 +83,21 @@ jobs:
         # We'd use Eldev itself to byte-compile, but that could hide
         # some problems (for Eldev itself, other packages should be
         # fine) by indirectly loading `.el' first.
-        emacs --batch --eval "(progn
-                                (require 'bytecomp)
-                                (let ((byte-compile-error-on-warn t))
-                                  (push default-directory load-path)
-                                  (unless (and (byte-compile-file \"eldev-util.el\")
-                                               (byte-compile-file \"eldev.el\")
-                                               (byte-compile-file \"eldev-ert.el\")
-                                               (byte-compile-file \"eldev-buttercup.el\")
-                                               (byte-compile-file \"eldev-plugins.el\"))
-                                    (kill-emacs 1))))"
+        emacs --batch --load .github/workflows/bytecompile.el
         # Ensure that our tests can be compiled cleanly: warnings
         # might indicate something is wrong with the test.  Here we
         # can already use Eldev.
-        ELDEV_LOCAL=. ./bin/eldev -p -dtTC compile --set test --warnings-as-errors
+        eldev -p -dtTC compile --set test --warnings-as-errors
+      env:
+        ELDEV_LOCAL: "."
 
     - name: Lint the project
       run: |
         # Run `relint' on Eldev's source code, more as a test of
         # Eldev--relint integration, because we use `rx' macro.
-        ELDEV_LOCAL=. ./bin/eldev -p -dtTC lint re
-
+        eldev -p -dtTC lint re
+      env:
+        ELDEV_LOCAL: "."
     # Method 1: if you have a catch-all directory for executables.  We
     # don't test bootstrapping, as that is supposed to have been
     # tested by normal ERT tests.
