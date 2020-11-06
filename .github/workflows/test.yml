@@ -41,6 +41,11 @@ jobs:
       if: startsWith (matrix.os, 'macos')
       run: brew install texinfo mercurial subversion
 
+    - name: Set git to use LF
+      run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
     - name: Check out the source code
       uses: actions/checkout@v2
 
