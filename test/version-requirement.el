@@ -43,7 +43,7 @@
     ;; `eldev-help' also specifies default options, which are
     ;; difficult to syncronize between the two processes.
     (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-first-line (eldev--test-capture-output (eldev-help))))
-                             stdout))))
+                             (eldev--test-drop-usage-bat-extension stdout)))))
 
 (ert-deftest eldev-require-version-info-1 ()
   (eldev--test-require-version "project-a" ("info") t

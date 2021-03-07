@@ -14,6 +14,10 @@
 
 (defvar eldev--test-packaged-self nil)
 
+(defun eldev--test-drop-usage-bat-extension (usage)
+  (replace-regexp-in-string "bin/eldev.bat" "bin/eldev"
+                            (replace-regexp-in-string "\\\\" "/" usage nil 'literal)
+                            nil 'literal))
 
 (defun eldev--test-dir ()
   (file-name-as-directory (expand-file-name "test" eldev-project-dir)))
