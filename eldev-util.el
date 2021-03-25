@@ -240,8 +240,7 @@ parameter, but it's not needed in noninteractive use."
   :string
 
     Returns the quoted STRING using delayed expansion tricks to
-    support multiline text.
-"
+    support multiline text."
   (pcase mode
     (`:init
      (concat "set ARGS=%*\n"
@@ -1521,5 +1520,7 @@ absolute paths, but are traced without them.  See
           (eldev--do-path-matches actual-path pattern-path-rest)
           (and actual-path-rest (eldev--do-path-matches actual-path-rest pattern-path))))))
 
+(defmacro eldev--is-windows-nt ()
+  (eq system-type 'windows-nt))
 
 (provide 'eldev-util)

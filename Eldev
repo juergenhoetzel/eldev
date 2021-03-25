@@ -79,9 +79,9 @@ be executed via `install.sh'."
     (eldev-print "\nIf you use a different directory, make sure to add it to `PATH'\nenvironment variable.")
     (signal 'eldev-quit 1))
   (let ((directory (car parameters))
-        (shell-script-name (if (equal system-type 'windows-nt)
+        (shell-script-name (if (eldev--is-windows-nt)
                                "eldev.bat"
-                             "eldev") ))
+                             "eldev")))
     (if (file-exists-p directory)
         (unless (file-directory-p directory)
           (signal 'eldev-error `("File `%s' exists, but is not a directory" ,directory)))

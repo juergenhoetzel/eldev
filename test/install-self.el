@@ -6,7 +6,7 @@
   (let* ((eldev--test-eldev-dir (eldev--test-tmp-subdir "install-dir"))
          (non-existing-dir      (eldev--test-tmp-subdir "non-existing-dir"))
          (bin-dir               (eldev--test-tmp-subdir "bin-dir"))
-         (shell-script-name (if (eq system-type 'windows-nt)
+         (shell-script-name (if (eldev--is-windows-nt)
                                 "eldev.bat"
                               "eldev"))
          (bin/eldev (format "bin/%s" shell-script-name))

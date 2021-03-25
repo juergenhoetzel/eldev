@@ -3,7 +3,7 @@
 
 (ert-deftest eldev-just-run-1 ()
   (eldev--test-run "empty-project" ()
-    (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-capture-output (eldev-usage))) (eldev--test-drop-usage-bat-extension stdout)))
+    (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-capture-output (eldev-usage))) stdout))
     (should (= exit-code 0))))
 
 ;; This should work even in broken projects.
@@ -13,7 +13,7 @@
   (let ((eldev--test-project "missing-dependency-a"))
     (eldev--test-delete-cache)
     (eldev--test-run nil ()
-      (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-capture-output (eldev-usage))) (eldev--test-drop-usage-bat-extension stdout)))
+      (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-capture-output (eldev-usage))) stdout))
       (should (= exit-code 0)))))
 
 (ert-deftest eldev-bootstrapping-1 ()
@@ -83,13 +83,13 @@
 
 (ert-deftest eldev-no-littering-1 ()
   (eldev--test-no-littering ()
-    (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-capture-output (eldev-usage))) (eldev--test-drop-usage-bat-extension stdout)))
+    (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-capture-output (eldev-usage))) stdout))
     (should (= exit-code 0))))
 
 (ert-deftest eldev-no-littering-2 ()
   (eldev--test-no-littering ("help")
     (should (string-prefix-p (eldev--test-in-project-environment (eldev--test-first-line (eldev--test-capture-output (eldev-help))))
-                             (eldev--test-drop-usage-bat-extension stdout)))
+                             stdout))
     (should (= exit-code 0))))
 
 (ert-deftest eldev-no-littering-3 ()

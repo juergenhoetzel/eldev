@@ -14,10 +14,6 @@
 
 (defvar eldev--test-packaged-self nil)
 
-(defun eldev--test-drop-usage-bat-extension (usage)
-  (replace-regexp-in-string "bin/eldev.bat" "bin/eldev"
-                            (replace-regexp-in-string "\\\\" "/" usage nil 'literal)
-                            nil 'literal))
 
 (defun eldev--test-dir ()
   (file-name-as-directory (expand-file-name "test" eldev-project-dir)))
@@ -260,10 +256,28 @@ beginning.  Exit code of the process is bound as EXIT-CODE."
 (defun eldev--test-line-list (multiline-string)
   (split-string multiline-string "\n" t))
 
+(defmacro eldev--test-usage-canonicalize-bin/eldev-path (_result)
+  (let ((result (make-symbol "result")))
+    (if (eldev--is-windows-nt)
+        `(let ((,result  ,_result))
+           (if (string-match "Usage: \\(.*/bin/eldev\\)" ,result)
+               (let* ((matched (match-string 1 ,result))
+                      (replacement
+                       (replace-regexp-in-string "bin\\\\eldev" "bin\\eldev.bat"
+                                                 (replace-regexp-in-string "/" "\\" matched
+                                                                           nil 'literal)
+                                                 nil 'literal)))
+                 (replace-match replacement nil 'literal ,result 1))
+             ,result))
+      _result)))
+
 (defmacro eldev--test-in-project-environment (&rest body)
   `(let ((eldev-project-dir   (eldev--test-project-dir))
          (eldev-shell-command eldev--test-shell-command))
-     ,@body))
+     ;; the expectation below is that BODY can evaluate to a 'usage'
+     ;; string whose bin/eldev path has to be updated in accordance
+     ;; with the current architecture.
+     (eldev--test-usage-canonicalize-bin/eldev-path ,@body)))
 
 
 (defmacro eldev--test-without-files (test-project files-to-delete &rest body)
