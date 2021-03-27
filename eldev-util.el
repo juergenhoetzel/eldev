@@ -1520,7 +1520,9 @@ absolute paths, but are traced without them.  See
           (eldev--do-path-matches actual-path pattern-path-rest)
           (and actual-path-rest (eldev--do-path-matches actual-path-rest pattern-path))))))
 
-(defmacro eldev--is-windows-nt ()
-  (eq system-type 'windows-nt))
+(defmacro eldev--shell-script-name ()
+  (if (eq system-type 'windows-nt)
+      "eldev.bat"
+    "eldev"))
 
 (provide 'eldev-util)

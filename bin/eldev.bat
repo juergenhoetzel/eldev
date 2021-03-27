@@ -9,14 +9,20 @@ REM Homepage: https://github.com/doublep/eldev
 setlocal
 
 if "%ELDEV_EMACS%" == "" (
-        if "%EMACS%" == "" (
-                set ELDEV_EMACS=emacs
-            ) else (
-                set ELDEV_EMACS=%EMACS%
-            )
-    )
+   if "%EMACS%" == "" (
+      set ELDEV_EMACS=emacs
+   ) else (
+      set ELDEV_EMACS=%EMACS%
+   )
+)
 
 set ELDEV_CMD=%0
+
+set ELDEV_TTY=
+call :CON_ANSI_SUPPORT? %CMDCMDLINE%
+if "%CON_ANSI_SUPPORT?%" == "t" (
+   set ELDEV_TTY=t
+)
 
 set ARGS=%*
 setlocal EnableDelayedExpansion
@@ -87,3 +93,27 @@ REM the newline variable above MUST be followed by two empty lines.
                 -- !ARGS!
 REM forward emacs exit status
 exit /b %errorlevel%
+
+:CON_ANSI_SUPPORT?
+REM Determine whether the script is running directly on a console
+REM which supports ANSI escape sequences, and set the
+REM `CON_ANSI_SUPPORT?'  var to `t' when so. The following two
+REM conditions have to be met:
+REM
+REM 1. The `CMDCMDLINE' variable, i.e. the original command line that
+REM invoked the Command Processor and passed in as the first argument
+REM to this call, must have been called without arguments, i.e. it is
+REM just a path to "cmd.exe" (thus it should be directly attached to
+REM the console).
+REM
+REM 2. The current version of MS-Windows is equal to 10.0.18363,
+REM i.e. the first version that had support for ANSI escape sequences
+REM enabled by default, or greater.
+for /f "tokens=4,5,6 delims=[]. " %%G in ('ver') do (set _mj=%%G&set _mn=%%H&set _bl=%%I)
+set CON_ANSI_SUPPORT?=
+if "%~2" == "" (
+   if %_mj% EQU 10 (if %_mn% EQU 0 (if %_bl% GEQ 18363 (set CON_ANSI_SUPPORT?=t)
+                    ) else (if %_mn% GTR 0 (set CON_ANSI_SUPPORT?=t))
+   ) else (if %_mj% GTR 10 (set CON_ANSI_SUPPORT?=t))
+)
+exit /b
