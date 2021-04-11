@@ -16,6 +16,7 @@ function getRawUrl(context, path) {
 // Download script and make it executable (required on Unix)
 async function downloadScript(github, context, file, outdir) {
     const url = getRawUrl(context, file);
+    console.log(`Atempt to download ${url}`);
     const response = await github.request(url);
     const out = join(outdir, basename(file) + suffix);
     await fs.promises.writeFile(out, response.data);
