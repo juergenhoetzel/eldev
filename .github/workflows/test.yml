@@ -115,20 +115,21 @@ jobs:
           console.log(eldev_out.stdout);
 
     # Method 2: general case, with Eldev script installed to
-    # `~/.eldev/bin'.  We don't add it to `$PATH' as we never run it.
+    # `~/.eldev/bin'.  We don't add it to `$PATH' as we run it using the absolute path
     - name: Test installation 2
       uses: actions/github-script@v3
       with:
         script: |
           const fs = require('fs');
           const exec = require('util').promisify(require('child_process').exec);
-          const {downloadScript,expandTilde} = require(`${process.env.GITHUB_WORKSPACE}/.github/workflows/util.js`);
+          const {getRawUrl,downloadScript,expandTilde} = require(`${process.env.GITHUB_WORKSPACE}/.github/workflows/util.js`);
 
           if (fs.existsSync(expandTilde("~/.eldev/bin/eldev")))
               throw("~/.eldev/bin/eldev already exists");
           await io.mkdirP('tmp');
           const script = await downloadScript(github, context, "webinstall/eldev", 'tmp');
-          await exec(script);
+          const eldev_bin_url = getRawUrl(context,"bin/eldev");
+          await exec(`${script} ${eldev_bin_url}`);
           const eldev_out = await exec(expandTilde("~/.eldev/bin/eldev"));
           console.log(eldev_out.stdout);
           await io.rmRF(expandTilde("~/.eldev/bin"));
